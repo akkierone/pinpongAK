@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>ピンポンゲーム</title>
+    <style>
+        body {
+            background-color: #282c34;
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+        canvas {
+            background: #1e1e1e;
+            border: 2px solid #0095DD;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 480px;  /* 最大幅を480pxに設定 */
+            height: auto;
+        }
+        #scoreDisplay {
+            font-size: 18px;  /* スマホでも見やすいサイズ */
+            margin: 10px 0;
+        }
+        button {
+            background-color: #0095DD;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            width: 90%;  /* ボタンがスマホ画面でしっかりと見えるように */
+            max-width: 200px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #007bbd;
+        }
+        #restartButton {
+            display: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="scoreDisplay">スコア: 0</div>
+
+<canvas id="gameCanvas" width="480" height="320"></canvas>
+
+<div id="restartButton">
+    <button onclick="restartGame()">再度始める</button>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+
+    // パドルの設定
+    let paddleHeight = 10;
+    let paddleWidth = 75;
+    let paddleX = (canvas.width - paddleWidth) / 2;
+
+    // ボールの設定
+    let ballRadius = 10;
+    let x = canvas.width / 2;
+    let y = canvas.height - 30;
+    let dx = 2;
+    let dy = -2;
+
+    // タッチ操作の変数
+    let touchX = null;
+
+    // ゲームオーバーかどうかを判定
+    let isGameOver = false;
+
+    // スコアの初期値
+    let score = 0;
+
+    // 難易度に応じた速度
+    let speedIncreaseFactor = 0.05;  // スコアに応じて少しずつ上がる
+
+    // スコア更新
+    function updateScore() {
+        score += 1;
+        scoreDisplay.textContent = `スコア: ${score}`;
+
+        // スコアが上がるごとにボールのスピードも上がる
+        dx += dx > 0 ? speedIncreaseFactor : -speedIncreaseFactor;
+        dy += dy > 0 ? speedIncreaseFactor : -speedIncreaseFactor;
+    }
+
+    // ボール描画
+    function drawBall() {
+        ctx.beginPath();
+        ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffdd57";
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    // パドル描画
+    function drawPaddle() {
+        ctx.beginPath();
+        ctx.rect(paddleX, canvas.height - paddleHeight, paddleWidth, paddleHeight);
+        ctx.fillStyle = "#00ffdd";
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    // ゲームの描画
+    function draw() {
+        if (!isGameOver) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBall();
+            drawPaddle();
+
+            // ボールが壁に当たる処理
+            if (x + dx > canvas.width - ballRadius || x + dx < ballRadius) {
+                dx = -dx;
+            }
+            if (y + dy < ballRadius) {
+                dy = -dy;
+            } else if (y + dy > canvas.height - ballRadius) {
+                if (x > paddleX && x < paddleX + paddleWidth) {
+                    dy = -dy;
+                    updateScore();  // スコアを加算
+                } else {
+                    // ゲームオーバー
+                    gameOver();
+                }
+            }
+
+            // ボールの位置を更新
+            x += dx;
+            y += dy;
+
+            // パドルの動き（タッチ操作に基づく）
+            if (touchX !== null) {
+                paddleX = touchX - paddleWidth / 2;
+            }
+
+            requestAnimationFrame(draw);
+        }
+    }
+
+    // ゲームオーバー処理
+    function gameOver() {
+        isGameOver = true;
+        document.getElementById('restartButton').style.display = 'block';  // 再度始めるボタンを表示
+    }
+
+    // 再度始めるボタンの処理
+    function restartGame() {
+        isGameOver = false;
+        document.getElementById('restartButton').style.display = 'none';  // ボタンを非表示
+        score = 0;  // スコアをリセット
+        scoreDisplay.textContent = `スコア: ${score}`;  // スコア表示をリセット
+        dx = 2;  // スピードリセット
+        dy = -2;
+        resetGame();
+        draw();  // ゲームを再開
+    }
+
+    // リセット処理
+    function resetGame() {
+        x = canvas.width / 2;
+        y = canvas.height - 30;
+        paddleX = (canvas.width - paddleWidth) / 2;
+    }
+
+    // タッチイベント
+    canvas.addEventListener('touchstart', handleTouchMove, false);
+    canvas.addEventListener('touchmove', handleTouchMove, false);
+
+    function handleTouchMove(e) {
+        e.preventDefault();  // スクロールなどのデフォルト動作を防ぐ
+        const rect = canvas.getBoundingClientRect();
+        touchX = e.touches[0].clientX - rect.left;
+    }
+
+    // ゲーム開始
+    draw();
+</script>
+
+</body>
+</html>
