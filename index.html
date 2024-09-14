@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ピンポンゲーム</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>絶対に落とすな！</h1>
+    <p>スコア: <span id="score">0</span></p>
+    <p id="statusMessage"></p>
+    <div id="gameArea">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+    <input type="text" id="playerName" placeholder="名前を入力">
+    <button id="sendScoreButton" style="display: none;">スコアを送信</button>
+    <button id="startButton">スタート</button>
+    <button id="restartButton" style="display: none;">再度始める</button>
+
+    <h2>ランキング</h2>
+    <ul id="rankingList"></ul>
+
+    <script src="game.js"></script>
+    <script src="ranking.js"></script>
+</body>
+</html>
